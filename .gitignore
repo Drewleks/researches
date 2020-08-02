@@ -123,3 +123,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+psbank_grant/.idea/encodings.xml
+psbank_grant/.idea/inspectionProfiles/profiles_settings.xml
+psbank_grant/.idea/misc.xml
+psbank_grant/.idea/modules.xml
+psbank_grant/.idea/psbank_grant.iml
