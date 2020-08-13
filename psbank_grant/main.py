@@ -1,20 +1,6 @@
-import requests
-import csv
-import time
-from bs4 import BeautifulSoup
 from selenium import webdriver
-
-
-start_time = time.time()
-
-headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:45.0) Gecko/20100101 Firefox/45.0'}
-
-
-def get_html(url):
-    r = requests.get(url, headers=headers)
-    if r.ok:
-        return r.text
-    print(r.status_code)
+import time
+import csv
 
 
 def write_csv(data):
@@ -27,61 +13,47 @@ def write_csv(data):
                          data["purpose"]])
 
 
-def get_page_data(html):
-    soup = BeautifulSoup(html, "html.parser")
-    card = soup.find("div", class_="competition__card is -full")
-    print(card)
-
-    # Название компании 1
-    try:
-        name = card.find("h3", class_="competition__name").txt
-    except:
-        name = "none"
-
-    # Количество лайков 2
-    try:
-        like_count = card.find("h3").find("a").get("href")
-    except:
-        like_count = "none"
-
-    # Регион 3
-    try:
-        region = card.find("span", class_="price").get("content")
-    except:
-        region = "none"
-
-    # Описание бизнеса 4
-    try:
-        business = card.find("div", class_="data").find("p").text
-    except:
-        business = "none"
-
-    # Цели гранта 5
-    try:
-        purpose = card.find("div", class_="data").find("p").text
-    except:
-        purpose = "none"
-
-    data = {"name": name,
-            "like_count": like_count,
-            "region": region,
-            "business": business,
-            "purpose": purpose}
-
-    write_csv(data)
-
-
 def main():
+    driver = webdriver.Chrome()
     pattern = "https://psbank-grant.rbc.ru/competitors?card={}"
 
-    for i in range(1, 2):
+    for i in range(1, 2444):
         url = pattern.format(str(i))
-        get_page_data(get_html(url))
-        #time.sleep(1)
+        driver.get(url)
+        time.sleep(3)
 
+        number = i
+        print(number)
 
-print("--- %s seconds ---" % (time.time() - start_time))
+        name = driver.find_element_by_xpath("/html/body/div[1]/div[6]/div[1]/div/div[6]/div/div/h3").text
+        print(name)
+
+        like_count = driver.find_element_by_xpath("/html/body/div[1]/div[6]/div[1]/div/div[6]/div/div/button").text
+        print(like_count)
+
+        region = driver.find_element_by_xpath("/html/body/div[1]/div[6]/div[1]/div/div[6]/div/div/div[1]").text
+        region = region.replace('Регион: ', '')
+        print(region)
+
+        business_and_purpose = driver.find_element_by_xpath("/html/body/div[1]/div[6]/div[1]/div/div[6]/div/div/p").text
+        grant = 'Грант нужен на:'
+        grant_index = business_and_purpose.find(grant)
+
+        business = business_and_purpose[7:grant_index].replace('\n', '')
+        print(business)
+
+        purpose = business_and_purpose[grant_index + 15:].replace('\n', '')
+        print(purpose)
+
+        data = {"number": number,
+                "name": name,
+                "like_count": like_count,
+                "region": region,
+                "business": business,
+                "purpose": purpose}
+
+        write_csv(data)
+
 
 if __name__ == "__main__":
     main()
-
